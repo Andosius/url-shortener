@@ -1,16 +1,32 @@
 const express = require('express')
 const mongoose = require('mongoose')
 
-const dotenv = require('dotenv')
-
 const ShortUrl = require('./models/ShortUrl')
 
 
-// Load environment information
-dotenv.config()
+// Connect to mongodb database and initialize other environment vars
+const {
+    MONGO_USERNAME,
+    MONGO_PASSWORD,
+    MONGO_HOSTNAME,
+    MONGO_PORT,
+    MONGO_DB,
+    TITLE,
+    PORT
+} = process.env;
 
-// Connect to mongoose database
-mongoose.connect(process.env.MONGOOSE_CONNECT, { useNewUrlParser: true, useUnifiedTopology: true })
+const url = `mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOSTNAME}:${MONGO_PORT}/${MONGO_DB}?authSource=admin`;
+const options = {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+};
+
+mongoose.connect(url, options).then(function() {
+    console.log('MongoDB successfully connected!')
+}).catch(function(e) {
+    console.log("Something went wrong!")
+    console.log(e)
+})
 
 
 // Initialize Express
@@ -27,7 +43,7 @@ app.get('/', async (req, res) => {
 
     res.render('index', {
         URLs: data,
-        title: process.env.TITLE || "URL-Shortener",
+        title: TITLE || "URL-Shortener",
         error: req.query.error,
         domain: req.hostname
     })
@@ -60,4 +76,4 @@ app.get('/:url', async (req, res) => {
 
 
 // Launch application
-app.listen(process.env.PORT || 5050)
+app.listen(PORT || 5050)
